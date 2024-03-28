@@ -33,7 +33,12 @@ public:
     Restaurant(string n) : name(n) {}
 
     bool isTimeSlotAvailable(const string& dateTime) const {
-        return find(availableTimeSlots.begin(), availableTimeSlots.end(), dateTime) != availableTimeSlots.end();
+        for (const auto& reservation : reservations) {
+            if (reservation.getDateTime() == dateTime) {
+                return false;
+            }
+        }
+        return true;
     }
 
     bool bookReservation(const Reservation& reservation) {
@@ -69,56 +74,71 @@ public:
     void addAvailableTimeSlot(const string& dateTime) {
         availableTimeSlots.push_back(dateTime);
     }
-
-    void addWrongCommandWarning(const string& selectedTime) const {
-        cout << "Warning: '" << selectedTime << "' is not a valid time slot. Please select from the available time slots." << endl;
-    }
 };
 
 int main() {
-
-    cout << "Welcome to Baratie \n" << endl;
     Restaurant restaurant("The Great Diner");
 
-
+    // Add available time slots
     restaurant.addAvailableTimeSlot("2024-04-01 18:00");
     restaurant.addAvailableTimeSlot("2024-04-02 19:30");
     restaurant.addAvailableTimeSlot("2024-04-02 22:30");
     restaurant.addAvailableTimeSlot("2024-04-02 23:30");
     restaurant.addAvailableTimeSlot("2024-04-02 16:30");
 
-    restaurant.displayAvailableTimeSlots();
+    int choice;
+    do {
+        cout << "\nWelcome to  Baratie !" << endl;
+        cout << "1. Show available time slots" << endl;
+        cout << "2. Make a reservation" << endl;
+        cout << "3. Display all reservations" << endl;
+        cout << "4. Exit" << endl;
+        cout << "Enter your choice: ";
+        cin >> choice;
 
-    
-    string selectedTime;
-    cout << "\nEnter your preferred time slot: ";
-    getline(cin, selectedTime);
+        switch (choice) {
+        case 1:
+            restaurant.displayAvailableTimeSlots();
+            break;
+        case 2: {
+            string selectedTime;
+            cin.ignore(); // Clear the input buffer
+            cout << "Enter your preferred time slot: ";
+            getline(cin, selectedTime);
 
+            if (!restaurant.isTimeSlotAvailable(selectedTime)) {
+                cout << "Selected time slot is not available. Please select from the available time slots." << endl;
+                break;
+            }
 
-    if (!restaurant.isTimeSlotAvailable(selectedTime)) {
-        restaurant.addWrongCommandWarning(selectedTime);
-        return 1; 
-    }
+            string customerName;
+            int partySize;
+            cout << "Enter your name: ";
+            getline(cin, customerName);
+            cout << "Enter party size: ";
+            cin >> partySize;
 
-    string customerName;
-    int partySize;
-    cout << "Enter your name: ";
-    getline(cin, customerName);
-    cout << "Enter party size: ";
-    cin >> partySize;
+            cin.ignore(); // Clear the input buffer
+            Reservation reservation(customerName, partySize, selectedTime);
 
- 
-    Reservation reservation(customerName, partySize, selectedTime);
-
-    if (restaurant.bookReservation(reservation)) {
-        cout << "Reservation successful.\n";
-    }
-    else {
-        cout << "Reservation failed. Time slot not available.\n";
-    }
-
-
-    restaurant.displayReservations();
+            if (restaurant.bookReservation(reservation)) {
+                cout << "Reservation successful." << endl;
+            }
+            else {
+                cout << "Reservation failed. Time slot not available." << endl;
+            }
+            break;
+        }
+        case 3:
+            restaurant.displayReservations();
+            break;
+        case 4:
+            cout << "Exiting the program. Goodbye!" << endl;
+            break;
+        default:
+            cout << "Invalid choice. Please try again." << endl;
+        }
+    } while (choice != 4);
 
     return 0;
 }
